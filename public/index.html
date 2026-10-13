@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amplify — one click, every platform</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 14v-4l11-5v14l-11-5z" fill="url(#g1)"/>
+      <path d="M17 9.5a3.5 3.5 0 010 5" stroke="url(#g1)" stroke-width="2" stroke-linecap="round"/>
+      <path d="M19.5 7a7 7 0 010 10" stroke="url(#g1)" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+      <defs><linearGradient id="g1" x1="0" y1="0" x2="24" y2="24">
+        <stop stop-color="#6366f1"/><stop offset="1" stop-color="#22d3ee"/>
+      </linearGradient></defs>
+    </svg>
+    <div>
+      <strong>Amplify</strong>
+      <span class="brand-sub" id="mode-badge">mock mode</span>
+    </div>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="compose" class="active">Compose</button>
+    <button data-tab="queue">Queue</button>
+    <button data-tab="calendar">Calendar</button>
+    <button data-tab="stats">Stats</button>
+    <button data-tab="accounts">Accounts</button>
+    <button data-tab="admin">Admin</button>
+    <button data-tab="platforms">Platform reality</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ============================================================ COMPOSE -->
+<section id="tab-compose" class="tab active">
+  <div class="compose-grid">
+
+    <!-- ---- poster designer ---- -->
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Poster designer</h2>
+        <div class="row gap-sm">
+          <button id="undo-btn" class="btn ghost sm" title="Undo (Ctrl+Z)" disabled>↶ Undo</button>
+          <button id="redo-btn" class="btn ghost sm" title="Redo (Ctrl+Shift+Z)" disabled>↷ Redo</button>
+          <select id="preset" class="input-sm" title="Export size"></select>
+          <button id="export-png" class="btn ghost sm">Export PNG</button>
+        </div>
+      </div>
+
+      <div class="designer">
+        <div class="canvas-wrap">
+          <canvas id="stage" width="1080" height="1080"></canvas>
+          <div id="canvas-hint">Drag layers in the panel to reorder · click a layer to edit</div>
+        </div>
+
+        <div class="designer-side">
+          <div class="field">
+            <label>Templates</label>
+            <div class="template-grid" id="templates"></div>
+          </div>
+
+          <div class="field">
+            <label>Background</label>
+            <div class="row gap-sm">
+              <select id="bg-type" class="input-sm">
+                <option value="gradient">Gradient</option>
+                <option value="solid">Solid colour</option>
+              </select>
+              <input type="color" id="bg-color-1" value="#4f46e5" class="swatch">
+              <input type="color" id="bg-color-2" value="#06b6d4" class="swatch">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Layers <button id="add-text" class="btn ghost sm right">+ Text</button></label>
+            <div id="layer-list" class="layer-list"></div>
+          </div>
+
+          <div class="field">
+            <label>Selected layer</label>
+            <div id="layer-editor" class="layer-editor">
+              <p class="muted small">Select a layer to edit it.</p>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Image</label>
+            <input type="file" id="image-input" accept="image/*" class="input-sm">
+          </div>
+
+          <div class="field">
+            <label>Custom fonts <span id="font-count" class="muted small"></span></label>
+            <input type="file" id="font-upload" accept=".ttf,.otf,.woff,.woff2" class="input-sm">
+            <p class="muted small">Upload .ttf/.otf/.woff/.woff2 — usable in the text editor and in server-side renders.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- compose / targets ---- -->
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Caption &amp; targets</h2>
+      </div>
+
+      <div class="field">
+        <label for="caption">Caption</label>
+        <textarea id="caption" rows="5" class="input" placeholder="Write once — Amplify validates it against every selected platform's rules before it sends."></textarea>
+        <div class="char-counts" id="char-counts"></div>
+      </div>
+
+      <div class="field">
+        <label>Attachments <span class="muted small" id="attach-count"></span>
+          <label class="btn ghost sm right" style="cursor:pointer">Upload<input type="file" id="lib-upload" accept="image/*,video/*" multiple hidden></label>
+        </label>
+        <div id="media-library" class="media-library"></div>
+        <p class="hint">
+          Click items to attach them, in order — 2+ images publish as a native carousel/album
+          (Instagram ≤10, Telegram ≤10, LinkedIn ≤10, TikTok ≤35, Facebook ≤10). With no attachments,
+          the poster from the designer is published instead.
+        </p>
+      </div>
+
+      <div class="field">
+        <label>Publish to <span class="muted small" id="target-count"></span></label>
+        <div id="target-list" class="target-list"></div>
+        <p class="hint">
+          <b>Send</b> publishes this composition to that one platform only — a rejection there never
+          blocks the others. The <b>checkbox</b> selects accounts for the bulk button below.
+        </p>
+      </div>
+
+      <div class="field">
+        <label for="schedule-at">Schedule <span class="muted small">(leave empty to publish immediately)</span></label>
+        <input type="datetime-local" id="schedule-at" class="input">
+        <p class="muted small">Jobs fire server-side, so this works with your laptop closed.</p>
+      </div>
+
+      <div id="precheck" class="precheck"></div>
+
+      <div class="row gap-sm actions">
+        <button id="btn-precheck" class="btn ghost">Pre-check rules</button>
+        <button id="btn-save" class="btn ghost">Save draft</button>
+        <button id="btn-publish" class="btn primary">Publish now</button>
+      </div>
+
+      <div class="field">
+        <label>Saved posts</label>
+        <div id="post-list" class="post-list"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================= QUEUE -->
+<section id="tab-queue" class="tab">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Publish queue</h2>
+      <button id="refresh-jobs" class="btn ghost sm">Refresh</button>
+    </div>
+    <p class="muted small">
+      One job per post per account. Failed jobs retry with exponential backoff (30s → 2m → 8m),
+      and each platform is paced at its documented minimum interval so a burst never trips rate-limit detection.
+    </p>
+    <div class="stat-row" id="job-stats"></div>
+    <div id="job-list" class="job-list"></div>
+  </div>
+</section>
+
+<!-- ========================================================== ACCOUNTS -->
+<section id="tab-accounts" class="panel-wrap tab">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Connected accounts</h2>
+      <button id="add-account" class="btn ghost sm">+ Connect account</button>
+    </div>
+    <p class="muted small">
+      Credentials stay in the local SQLite database and are never sent back to the browser —
+      the UI only shows whether each field is filled.
+    </p>
+    <div id="connect-buttons" class="row gap-sm" style="margin-bottom:14px"></div>
+    <div id="account-list" class="account-list"></div>
+  </div>
+
+  <div class="panel" id="account-form-panel" hidden>
+    <div class="panel-head"><h2 id="account-form-title">Connect account</h2></div>
+    <div id="account-form"></div>
+  </div>
+</section>
+
+<!-- ========================================================== CALENDAR -->
+<section id="tab-calendar" class="tab">
+  <div class="panel">
+    <div class="panel-head">
+      <h2 id="cal-label">Month</h2>
+      <div class="row gap-sm">
+        <button id="cal-prev" class="btn ghost sm">← Prev</button>
+        <button id="cal-today" class="btn ghost sm">Today</button>
+        <button id="cal-next" class="btn ghost sm">Next →</button>
+      </div>
+    </div>
+    <p class="muted small">
+      Everything with a time lives here — scheduled posts at their fire time, published ones at
+      theirs. Click any entry to open it in Compose. Days are your local timezone; the server stores UTC.
+    </p>
+    <div class="cal-week">
+      <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+    </div>
+    <div id="cal-grid" class="cal-grid"></div>
+    <div class="row gap-sm" style="margin-top:12px">
+      <span class="badge b-scheduled">scheduled</span>
+      <span class="badge b-queued">queued / retrying</span>
+      <span class="badge b-published">published</span>
+      <span class="badge b-failed">failed</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================= ADMIN -->
+<!-- ========================================================== STATS -->
+<section id="tab-stats" class="tab">
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Post performance</h2>
+      <button id="stats-refresh" class="btn ghost sm">Refresh numbers</button>
+    </div>
+    <p class="muted small">
+      Engagement per published post, fetched from each platform and cached for 10 minutes.
+      In simulation mode the numbers are deterministic fakes that grow over time, so the whole
+      flow is visible with zero API keys. Telegram has no per-message analytics at all — that is
+      the platform, not a bug.
+    </p>
+    <div class="stats-layout">
+      <div id="stats-posts" class="stats-posts"></div>
+      <div id="stats-detail" class="stats-detail"><p class="muted small">Pick a published post.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="tab-admin" class="tab">
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2>System</h2>
+      <span class="badge b-scheduled" id="admin-mode-badge">simulation</span>
+    </div>
+    <p class="muted small">
+      Runtime settings, saved to the local database and applied immediately — no restart needed.
+    </p>
+
+    <div class="admin-switch-row">
+      <div class="admin-switch-text">
+        <strong>Simulation mode</strong>
+        <p class="muted small">While on, every publish is simulated (including random transient failures) and nothing touches a real network.
+        Turn off only after you have pasted real credentials and tested each connection below.</p>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="mock-toggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="field">
+      <label for="public-base-url">Public base URL</label>
+      <input id="public-base-url" class="input" placeholder="https://amplify.example.com">
+      <p class="hint">Instagram and TikTok fetch your poster from a <b>public</b> URL themselves — localhost will not work in live mode. Used when rendering posters for publishing.</p>
+    </div>
+
+    <div class="row gap-sm actions">
+      <button class="btn primary" id="save-settings">Save settings</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h2>Connection tests</h2>
+      <p class="muted small" style="margin:0">Paste keys in <b>Accounts</b>, then verify them here before trusting a real publish.</p>
+    </div>
+    <div id="admin-tests" class="admin-tests"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>Queue health</h2></div>
+    <div class="stat-row" id="admin-queue"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>Daily budgets</h2></div>
+    <p class="muted small">
+      What Amplify published today against each platform's documented daily ceiling.
+      These are pacing guards, not hard API errors — staying under them is what keeps
+      accounts healthy long-term.
+    </p>
+    <div id="admin-quotas" class="quota-list"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head"><h2>OAuth app credentials (server environment)</h2></div>
+    <p class="muted small">
+      Only needed for the browser-based connect flows. Paste-style credentials (Telegram bot token,
+      page tokens, refresh tokens) are stored per account instead and never leave this machine.
+    </p>
+    <div id="admin-env" class="cred-grid"></div>
+  </div>
+</section>
+
+<!-- ========================================================= PLATFORMS -->
+<section id="tab-platforms" class="tab">
+  <div class="panel">
+    <div class="panel-head"><h2>Platform reality check — October 2026</h2></div>
+    <p class="muted small">
+      What each network actually permits, verified against their current documentation.
+      This is the constraint that shaped the whole product — the gates below are not engineering problems, they are policy decisions.
+    </p>
+    <div id="platform-cards" class="platform-cards"></div>
+    <div id="blocked-cards" class="platform-cards"></div>
+  </div>
+</section>
+
+</main>
+
+<div id="toast-host" class="toast-host"></div>
+
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>
